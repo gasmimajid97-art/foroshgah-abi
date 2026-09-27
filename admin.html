@@ -1,0 +1,37 @@
+<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>مدیریت محصولات | فروشگاه آبی</title>
+<style>
+body{font-family:Tahoma,Arial;background:#f3f7fb;color:#17283b;margin:0;line-height:1.8}header{background:#0b2440;color:white;padding:18px}main{max-width:850px;margin:20px auto;padding:0 14px}.box{background:white;border:1px solid #e0eaf3;border-radius:14px;padding:18px;margin-bottom:16px}.warn{background:#fff3d2;padding:12px;border-radius:10px;font-size:12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{font-size:12px}input,select,textarea{width:100%;padding:10px;border:1px solid #d5e1ec;border-radius:8px;box-sizing:border-box;font:inherit}textarea{min-height:65px}.wide{grid-column:1/-1}button,.btn{border:0;padding:10px 14px;border-radius:9px;cursor:pointer;font:inherit;background:#1268b3;color:white}.secondary{background:#eaf3fb;color:#174b76}.danger{background:#fff0ef;color:#a32d25}.row{display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid #e5edf5;padding:12px 0}.row small{display:block;color:#718398}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}@media(max-width:560px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.row{align-items:flex-start}.row .actions{flex-direction:column;margin:0}}
+</style>
+<header><h2>پنل مدیریت محصولات فروشگاه آبی</h2><small>افزودن، ویرایش و حذف کالاها</small></header><main>
+<div class="warn"><b>مهم:</b> این نسخه آزمایشی است؛ اطلاعات فقط در حافظه همین مرورگر و دستگاه ذخیره می‌شود و برای مشتریان دیگر به‌روزرسانی نمی‌شود. پنل رمز عبور ندارد. برای مدیریت واقعی و امن، سرور و پایگاه داده لازم است.</div>
+<section class="box"><h3 id="title">افزودن محصول</h3><form id="form"><input type="hidden" id="id"><div class="grid">
+<div><label>نام محصول *</label><input id="name" required></div>
+<div><label>دسته خودرو</label><select id="car"><option>نیسان</option><option>پراید</option><option>پژو</option><option>مزدا</option></select></div>
+<div><label>آیکون/ایموجی</label><input id="icon" value="🔧"></div>
+<div><label>قیمت</label><input id="price" value="استعلام قیمت"></div>
+<div class="wide"><label>توضیحات</label><textarea id="desc"></textarea></div></div><div class="actions"><button type="submit">ذخیره محصول</button><button type="button" class="secondary" id="clear">پاک‌کردن فرم</button></div></form></section>
+<section class="box"><h3>فهرست محصولات <span id="count"></span></h3><div id="list"></div><div class="actions"><button id="export" class="secondary">خروجی پشتیبان JSON</button><label class="btn secondary" for="file">ورود فایل JSON</label><input id="file" type="file" accept=".json,application/json" hidden><button id="reset" class="danger">بازگردانی نمونه‌ها</button></div></section>
+<p><a href="./">بازگشت به سایت فروشگاه</a></p></main>
+<script>
+const key='abi_products',defaults=[
+{id:1,name:'دوشاخه کلاچ نیسان شرکتی',car:'نیسان',icon:'⚙️',desc:'قطعه یدکی سیستم کلاچ نیسان',price:'استعلام قیمت'},
+{id:2,name:'آینه بغل نیسان',car:'نیسان',icon:'🪞',desc:'آینه بغل مناسب خودروهای نیسان',price:'استعلام قیمت'},
+{id:3,name:'تسمه تایم پاورگریپ پراید و پژو',car:'پراید',icon:'〰️',desc:'تسمه تایم پاورگریپ؛ اصالت و سازگاری را استعلام کنید',price:'استعلام قیمت'},
+{id:4,name:'لوازم مصرفی موتور پراید',car:'پراید',icon:'🔩',desc:'انواع قطعات مصرفی و یدکی',price:'استعلام قیمت'},
+{id:5,name:'قطعات جلوبندی پژو',car:'پژو',icon:'🛠️',desc:'قطعات جلوبندی و تعلیق پژو',price:'استعلام قیمت'},
+{id:6,name:'قطعات موتور پژو',car:'پژو',icon:'⚙️',desc:'قطعات یدکی موتور؛ مدل خودرو را اعلام کنید',price:'استعلام قیمت'},
+{id:7,name:'قطعات یدکی مزدا',car:'مزدا',icon:'🔧',desc:'برای مدل و سال خودرو استعلام بگیرید',price:'استعلام قیمت'},
+{id:8,name:'لوازم جانبی نیسان',car:'نیسان',icon:'🧰',desc:'انواع لوازم جانبی و قطعات موردنیاز',price:'استعلام قیمت'}];
+let items=load();function load(){try{let a=JSON.parse(localStorage.getItem(key));return Array.isArray(a)?a:defaults.map(x=>({...x}))}catch{return defaults.map(x=>({...x}))}}
+function save(){localStorage.setItem(key,JSON.stringify(items));render()}
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function render(){document.getElementById('count').textContent='('+items.length+' کالا)';document.getElementById('list').innerHTML=items.length?items.map(p=>`<div class="row"><div><b>${esc(p.name)}</b><small>${esc(p.car)} · ${esc(p.price||'استعلام قیمت')}</small></div><div class="actions"><button class="secondary" onclick="edit(${p.id})">ویرایش</button><button class="danger" onclick="del(${p.id})">حذف</button></div></div>`).join(''):'هنوز محصولی ندارید.'}
+function clearForm(){form.reset();id.value='';icon.value='🔧';price.value='استعلام قیمت';title.textContent='افزودن محصول'}
+form.onsubmit=e=>{e.preventDefault();let old=id.value;let p={id:old?+old:Math.max(0,...items.map(x=>+x.id||0))+1,name:name.value.trim(),car:car.value,icon:icon.value.trim()||'🔧',price:price.value.trim()||'استعلام قیمت',desc:desc.value.trim()};if(!p.name)return;if(old)items=items.map(x=>+x.id===+old?p:x);else items.push(p);save();clearForm();alert('ذخیره شد؛ فقط در همین مرورگر.')}
+function edit(n){let p=items.find(x=>+x.id===n);if(!p)return;id.value=p.id;name.value=p.name;car.value=p.car;icon.value=p.icon;price.value=p.price;desc.value=p.desc;title.textContent='ویرایش محصول';scrollTo({top:0,behavior:'smooth'})}
+function del(n){if(confirm('این محصول حذف شود؟')){items=items.filter(x=>+x.id!==n);save()}}
+document.getElementById('clear').onclick=clearForm;
+document.getElementById('export').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(items,null,2)],{type:'application/json'}));a.download='abi-products.json';a.click();URL.revokeObjectURL(a.href)};
+document.getElementById('file').onchange=async e=>{try{let a=JSON.parse(await e.target.files[0].text());if(!Array.isArray(a)||!a.every(x=>x.name&&x.car))throw 0;if(confirm('جایگزینی همه محصولات؟')){items=a;save()}}catch{alert('فایل معتبر نیست')}e.target.value=''};
+document.getElementById('reset').onclick=()=>{if(confirm('محصولات نمونه جایگزین شوند؟')){items=defaults.map(x=>({...x}));save();clearForm()}};render();
+</script></html>
