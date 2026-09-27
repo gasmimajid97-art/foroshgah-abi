@@ -1,0 +1,12 @@
+{
+  "name": "فروشگاه آبی | قطعات یدکی خودرو",
+  "short_name": "فروشگاه آبی",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f8fc",
+  "theme_color": "#0b2440",
+  "description": "فروشگاه قطعات یدکی نیسان، پراید، پژو و مزدا"
+}
