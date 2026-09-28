@@ -13,7 +13,9 @@ body{font-family:Tahoma,Arial;background:#f3f7fb;color:#17283b;margin:0;line-hei
 <section class="box"><h3>فهرست محصولات <span id="count"></span></h3><div id="list"></div><div class="actions"><button id="export" class="secondary">خروجی پشتیبان JSON</button><label class="btn secondary" for="file">ورود فایل JSON</label><input id="file" type="file" accept=".json,application/json" hidden><button id="reset" class="danger">بازگردانی نمونه‌ها</button></div></section>
 <p><a href="./">بازگشت به سایت فروشگاه</a></p></main>
 <script>
-const key='abi_products',defaults=[
+'use strict';
+const key='abi_products';
+const defaults=[
 {id:1,name:'دوشاخه کلاچ نیسان شرکتی',car:'نیسان',icon:'⚙️',desc:'قطعه یدکی سیستم کلاچ نیسان',price:'استعلام قیمت'},
 {id:2,name:'آینه بغل نیسان',car:'نیسان',icon:'🪞',desc:'آینه بغل مناسب خودروهای نیسان',price:'استعلام قیمت'},
 {id:3,name:'تسمه تایم پاورگریپ پراید و پژو',car:'پراید',icon:'〰️',desc:'تسمه تایم پاورگریپ؛ اصالت و سازگاری را استعلام کنید',price:'استعلام قیمت'},
@@ -22,16 +24,19 @@ const key='abi_products',defaults=[
 {id:6,name:'قطعات موتور پژو',car:'پژو',icon:'⚙️',desc:'قطعات یدکی موتور؛ مدل خودرو را اعلام کنید',price:'استعلام قیمت'},
 {id:7,name:'قطعات یدکی مزدا',car:'مزدا',icon:'🔧',desc:'برای مدل و سال خودرو استعلام بگیرید',price:'استعلام قیمت'},
 {id:8,name:'لوازم جانبی نیسان',car:'نیسان',icon:'🧰',desc:'انواع لوازم جانبی و قطعات موردنیاز',price:'استعلام قیمت'}];
-let items=load();function load(){try{let a=JSON.parse(localStorage.getItem(key));return Array.isArray(a)?a:defaults.map(x=>({...x}))}catch{return defaults.map(x=>({...x}))}}
-function save(){localStorage.setItem(key,JSON.stringify(items));render()}
-function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-function render(){document.getElementById('count').textContent='('+items.length+' کالا)';document.getElementById('list').innerHTML=items.length?items.map(p=>`<div class="row"><div><b>${esc(p.name)}</b><small>${esc(p.car)} · ${esc(p.price||'استعلام قیمت')}</small></div><div class="actions"><button class="secondary" onclick="edit(${p.id})">ویرایش</button><button class="danger" onclick="del(${p.id})">حذف</button></div></div>`).join(''):'هنوز محصولی ندارید.'}
-function clearForm(){form.reset();id.value='';icon.value='🔧';price.value='استعلام قیمت';title.textContent='افزودن محصول'}
-form.onsubmit=e=>{e.preventDefault();let old=id.value;let p={id:old?+old:Math.max(0,...items.map(x=>+x.id||0))+1,name:name.value.trim(),car:car.value,icon:icon.value.trim()||'🔧',price:price.value.trim()||'استعلام قیمت',desc:desc.value.trim()};if(!p.name)return;if(old)items=items.map(x=>+x.id===+old?p:x);else items.push(p);save();clearForm();alert('ذخیره شد؛ فقط در همین مرورگر.')}
-function edit(n){let p=items.find(x=>+x.id===n);if(!p)return;id.value=p.id;name.value=p.name;car.value=p.car;icon.value=p.icon;price.value=p.price;desc.value=p.desc;title.textContent='ویرایش محصول';scrollTo({top:0,behavior:'smooth'})}
-function del(n){if(confirm('این محصول حذف شود؟')){items=items.filter(x=>+x.id!==n);save()}}
-document.getElementById('clear').onclick=clearForm;
-document.getElementById('export').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(items,null,2)],{type:'application/json'}));a.download='abi-products.json';a.click();URL.revokeObjectURL(a.href)};
-document.getElementById('file').onchange=async e=>{try{let a=JSON.parse(await e.target.files[0].text());if(!Array.isArray(a)||!a.every(x=>x.name&&x.car))throw 0;if(confirm('جایگزینی همه محصولات؟')){items=a;save()}}catch{alert('فایل معتبر نیست')}e.target.value=''};
-document.getElementById('reset').onclick=()=>{if(confirm('محصولات نمونه جایگزین شوند؟')){items=defaults.map(x=>({...x}));save();clearForm()}};render();
+const $=id=>document.getElementById(id);
+let items=load();
+function load(){try{const a=JSON.parse(localStorage.getItem(key));return Array.isArray(a)?a:defaults.map(x=>({...x}));}catch{return defaults.map(x=>({...x}));}}
+function save(){try{localStorage.setItem(key,JSON.stringify(items));render();return true;}catch(e){alert('ذخیره‌سازی در مرورگر انجام نشد. فضای ذخیره‌سازی یا تنظیمات مرورگر را بررسی کنید.');return false;}}
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function render(){$('count').textContent='('+items.length+' کالا)';$('list').innerHTML=items.length?items.map(p=>`<div class="row"><div><b>${esc(p.name)}</b><small>${esc(p.car)} · ${esc(p.price||'استعلام قیمت')}</small></div><div class="actions"><button type="button" class="secondary" onclick="edit(${Number(p.id)})">ویرایش</button><button type="button" class="danger" onclick="del(${Number(p.id)})">حذف</button></div></div>`).join(''):'هنوز محصولی ندارید.';}
+function clearForm(){$('form').reset();$('id').value='';$('icon').value='🔧';$('price').value='استعلام قیمت';$('title').textContent='افزودن محصول';}
+$('form').addEventListener('submit',e=>{e.preventDefault();const old=$('id').value;const p={id:old?Number(old):Math.max(0,...items.map(x=>Number(x.id)||0))+1,name:$('name').value.trim(),car:$('car').value,icon:$('icon').value.trim()||'🔧',price:$('price').value.trim()||'استعلام قیمت',desc:$('desc').value.trim()};if(!p.name){alert('نام محصول را وارد کنید.');return;}const previous=items;items=old?items.map(x=>Number(x.id)===Number(old)?p:x):[...items,p];if(save()){clearForm();alert('محصول ذخیره شد. توجه: این تغییر فقط در همین مرورگر و دستگاه است.');}else items=previous;});
+function edit(n){const p=items.find(x=>Number(x.id)===n);if(!p)return;$('id').value=p.id;$('name').value=p.name;$('car').value=p.car;$('icon').value=p.icon||'🔧';$('price').value=p.price||'استعلام قیمت';$('desc').value=p.desc||'';$('title').textContent='ویرایش محصول';window.scrollTo({top:0,behavior:'smooth'});}
+function del(n){if(confirm('این محصول حذف شود؟')){const old=items;items=items.filter(x=>Number(x.id)!==n);if(!save())items=old;}}
+$('clear').addEventListener('click',clearForm);
+$('export').addEventListener('click',()=>{const a=document.createElement('a');const url=URL.createObjectURL(new Blob([JSON.stringify(items,null,2)],{type:'application/json'}));a.href=url;a.download='abi-products.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+$('file').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{const a=JSON.parse(await file.text());if(!Array.isArray(a)||!a.every(x=>x&&x.name&&x.car))throw new Error();if(confirm('جایگزینی همه محصولات؟')){const old=items;items=a.map((x,i)=>({...x,id:Number(x.id)||i+1}));if(!save())items=old;}}catch{alert('فایل معتبر نیست. یک فایل JSON خروجی پنل انتخاب کنید.');}e.target.value='';});
+$('reset').addEventListener('click',()=>{if(confirm('محصولات نمونه جایگزین شوند؟')){const old=items;items=defaults.map(x=>({...x}));if(save())clearForm();else items=old;}});
+render();
 </script></html>
