@@ -49,8 +49,11 @@ footer{margin-top:45px;background:#071a2d;color:#dce9f5;padding:32px 0 20px}.foo
 <footer id="contact"><div class="wrap"><div class="footgrid"><div><h3>فروشگاه آبی</h3><p>مرجع معرفی و سفارش قطعات یدکی خودروهای نیسان، پراید، پژو و مزدا. برای اطلاع از قیمت، موجودی و روش ارسال با ما تماس بگیرید.</p></div><div><h4>دسترسی سریع</h4><ul><li><a href="#products">محصولات</a></li><li><a href="tel:09131763502">تماس با فروشگاه</a></li><li><a href="https://wa.me/989131763502" target="_blank" rel="noopener">واتساپ</a></li></ul></div><div><h4>ارتباط با ما</h4><p>📞 <a href="tel:09131763502">۰۹۱۳۱۷۶۳۵۰۲</a></p><p>💬 سفارش و استعلام از طریق واتساپ</p></div></div><div class="copyright">© فروشگاه آبی — تمامی حقوق محفوظ است.</div></div></footer>
 <button class="cart-fab" onclick="openCart()">🛒 سبد خرید <span id="fabCount">۰</span></button>
 <div class="overlay" id="overlay" onclick="closeCart()"></div><aside class="drawer" id="drawer"><div class="drawer-head"><h3>سبد خرید شما</h3><button class="close" onclick="closeCart()">بستن ✕</button></div><div id="cartItems"></div><div id="cartTotal"></div><button class="checkout" onclick="checkout()">ارسال سفارش در واتساپ</button></aside>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>const firebaseConfig={apiKey:"AIzaSyAKgHTC2-HaESmdrsQMgBuUsq3QQcptO6E",authDomain:"foroshgah-abi.firebaseapp.com",databaseURL:"https://foroshgah-abi-default-rtdb.firebaseio.com",projectId:"foroshgah-abi",storageBucket:"foroshgah-abi.firebasestorage.app",messagingSenderId:"492765979499",appId:"1:492765979499:web:b890ab658e9b722b01e22e",measurementId:"G-TVRVN6BYWB"};firebase.initializeApp(firebaseConfig);const db=firebase.database();</script>
 <script>
-const products=[
+const defaultProducts=[
 {id:1,name:'دوشاخه کلاچ نیسان شرکتی',car:'نیسان',icon:'⚙️',desc:'قطعه یدکی سیستم کلاچ نیسان',price:'استعلام قیمت'},
 {id:2,name:'آینه بغل نیسان',car:'نیسان',icon:'🪞',desc:'آینه بغل مناسب خودروهای نیسان',price:'استعلام قیمت'},
 {id:3,name:'تسمه تایم پاورگریپ پراید و پژو',car:'پراید',icon:'〰️',desc:'تسمه تایم پاورگریپ؛ اصالت و سازگاری را استعلام کنید',price:'استعلام قیمت'},
@@ -60,8 +63,9 @@ const products=[
 {id:7,name:'قطعات یدکی مزدا',car:'مزدا',icon:'🔧',desc:'برای مدل و سال خودرو استعلام بگیرید',price:'استعلام قیمت'},
 {id:8,name:'لوازم جانبی نیسان',car:'نیسان',icon:'🧰',desc:'انواع لوازم جانبی و قطعات موردنیاز',price:'استعلام قیمت'}
 ];
-let active='همه',cart=[];
-try{const saved=JSON.parse(localStorage.getItem('abi_products')||'null');if(Array.isArray(saved))products.splice(0,products.length,...saved)}catch(e){}
+let products=defaultProducts.map(p=>({...p})),active='همه',cart=[];
+// محصولات از پایگاه داده مشترک فروشگاه خوانده می‌شوند.
+db.ref('products').on('value',snap=>{const val=snap.val();if(val){products=Object.entries(val).map(([key,p])=>({...p,id:p.id??key}));}else{products=[];}renderProducts();updateCart();},err=>{console.error(err);});
 const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 function renderProducts(){const q=document.getElementById('search').value.trim().toLowerCase();const list=products.filter(p=>(active==='همه'||p.car===active)&&(p.name+' '+p.car+' '+p.desc).toLowerCase().includes(q));document.getElementById('productGrid').innerHTML=list.length?list.map(p=>`<article class="product"><div class="prod-art"><span class="badge">استعلامی</span>${p.icon}</div><div class="prod-body"><h3>${p.name}</h3><div class="desc">${p.desc}</div><div class="price-row"><span class="price">${p.price}</span><button class="add" onclick="addToCart(${p.id})">افزودن +</button></div></div></article>`).join(''):'<p>محصولی با این مشخصات پیدا نشد.</p>'}
 function setCat(cat,el){active=cat;document.querySelectorAll('.navrow button[data-cat]').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));renderProducts();document.getElementById('products').scrollIntoView({behavior:'smooth',block:'start'})}
